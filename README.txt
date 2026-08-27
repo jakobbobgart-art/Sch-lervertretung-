@@ -17,20 +17,4 @@ WICHTIG:
 async function toggleLike(id, currentLikes, isLiked) {
   const delta = isLiked ? -1 : 1;
   
-  // Supabase RPC aufrufen
-  const { error } = await supabase.rpc('increment_idea_likes', {
-    p_id: id,
-    p_delta: delta
-  });
 
-  if (!error) {
-    // Lokalen Like-Zustand umkehren
-    if (isLiked) {
-      likedIds = likedIds.filter(item => item !== id);
-    } else {
-      likedIds.push(id);
-    }
-    localStorage.setItem('liked_ideas', JSON.stringify(likedIds));
-    fetchIdeas(); // Ansicht neu laden
-  }
-}
