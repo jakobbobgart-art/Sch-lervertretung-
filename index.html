@@ -54,24 +54,7 @@ const setLiked=x=>localStorage.setItem('sv_liked',JSON.stringify(x));
 async function fetchIdeas(){let q=db.from('ideas').select('*').order('created_at',{ascending:false});const {data,error}=await q;if(error){showError(error.message);return []}return data||[]}
 async function render(){const x=await fetchIdeas();let h=x.slice().sort((a,b)=>b.likes-a.likes).slice(0,3);document.getElementById('homeList').innerHTML=h.map(card).join('')||'<p class="small">Noch keine Vorschläge.</p>';let y=[...x];if(filter==='read')y=y.filter(i=>i.read);if(filter==='unread')y=y.filter(i=>!i.read);if(filter==='likes')y.sort((a,b)=>b.likes-a.likes);document.getElementById('ideaList').innerHTML=y.map(card).join('')||'<p class="small">Keine Vorschläge in dieser Ansicht.</p>'}
 function card(i){const l=liked().includes(i.id);return `<div class="card"><h3>${esc(i.title)}</h3><div class="desc">${esc(i.description)}</div><div class="meta">${esc(i.category)} · ${esc(i.author||'Anonym')}</div><div class="actions"><button class="like ${l?'liked':''}" onclick="like('${i.id}')">♡ ${i.likes}</button><span class="read">${i.read?'✓ Gelesen':'<span class="dot"></span>Ungelesen'}</span></div></div>`}
-async function toggleLike(id, currentLikes, isLiked) {
-  const delta = isLiked ? -1 : 1;
-  
-  const { error } = await supabase.rpc('increment_idea_likes', {
-    p_id: id,
-    p_delta: delta
-  });
 
-  if (!error) {
-    if (isLiked) {
-      likedIds = likedIds.filter(item => item !== id);
-    } else {
-      likedIds.push(id);
-    }
-    localStorage.setItem('liked_ideas', JSON.stringify(likedIds));
-    fetchIdeas();
-  }
-}
   
 async function submitIdea(){const t=document.getElementById('title').value.trim(),d=document.getElementById('desc').value.trim();if(!t||!d)return alert('Bitte Titel und Beschreibung ausfüllen.');const {error}=await db.from('ideas').insert({title:t,description:d,category:document.getElementById('cat').value,author:document.getElementById('author').value.trim()||'Anonym'});if(error)return alert('Fehler: '+error.message);document.getElementById('title').value='';document.getElementById('desc').value='';document.getElementById('author').value='';alert('Danke! Dein Vorschlag wurde eingereicht.');show('ideas')}
 function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));render();if(id==='admin')checkUser()}
