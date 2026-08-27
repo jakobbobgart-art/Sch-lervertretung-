@@ -45,6 +45,10 @@ nav{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);di
 <nav><button class="navbtn active" onclick="show('home')">⌂<br>Start</button><button class="navbtn" onclick="show('ideas')">☷<br>Vorschläge</button><button class="navbtn" onclick="show('new')">＋<br>Einreichen</button><button class="navbtn" onclick="show('admin')">♙<br>SV</button></nav>
 </div>
 <script>
+  window.onerror = function(msg, url, line) {
+  alert("Fehler: " + msg + " (Zeile " + line + ")");
+};
+  
 const SUPABASE_URL="https://mownirvgaflngfwzythi.supabase.co";
 const SUPABASE_KEY="sb_publishable_AL4EwTHoIXcaI-5-d7C0Vw_hvDcDsbF";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
