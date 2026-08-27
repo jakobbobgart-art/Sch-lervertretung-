@@ -1,92 +1,79 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#183b5b">
-<title>SV Ideensammler</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-:root{--navy:#183b5b;--bg:#f5f7f9;--line:#dfe5ea;--muted:#6d7882;--red:#d9534f}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#17212b}.app{max-width:540px;margin:auto;min-height:100vh;background:#fff}
-header{padding:20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:5}.brand{font-weight:800;font-size:21px;color:var(--navy)}.tag{font-size:13px;color:var(--muted);margin-top:4px}
-main{padding:20px}.screen{display:none}.screen.active{display:block}.hero{background:#f1f5f8;border-radius:18px;padding:22px;margin-bottom:20px}h1{font-size:25px;margin:0 0 8px}h2{font-size:21px}.hero p,.small,.desc{color:var(--muted);line-height:1.5}
-button{font:inherit;cursor:pointer}.primary{width:100%;border:0;background:var(--navy);color:#fff;border-radius:12px;padding:13px;font-weight:700}.secondary{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:10px;padding:10px}
-.card{border:1px solid var(--line);border-radius:15px;padding:16px;margin:11px 0}.card h3{font-size:17px;margin:0 0 7px}.meta{font-size:12px;color:var(--muted);margin-top:10px}.actions{display:flex;align-items:center;justify-content:space-between;margin-top:13px}.like{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 11px;color:var(--navy)}.like.liked{background:#edf4f8;border-color:#b8cad8}.read{font-size:12px}.dot{display:inline-block;width:7px;height:7px;background:var(--red);border-radius:50%;margin-right:5px}
-.tabs{display:flex;gap:7px;margin:14px 0;overflow:auto}.tab{white-space:nowrap;border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:20px;color:var(--muted)}.tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
-label{font-size:13px;font-weight:700;display:block;margin:16px 0 7px}input,textarea,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;font:inherit}textarea{min-height:130px;resize:vertical}.back{border:0;background:none;color:var(--navy);font-weight:700;padding:0 0 12px}.notice{padding:11px;border-radius:10px;background:#f1f5f8;font-size:13px;color:var(--muted);margin:12px 0}
-nav{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;padding:7px;z-index:5}.navbtn{flex:1;border:0;background:none;padding:8px 3px;color:var(--muted);font-size:12px}.navbtn.active{color:var(--navy);font-weight:800}
-.spinner{text-align:center;padding:20px;color:var(--muted)}.adminbar{display:flex;gap:8px;margin:10px 0}.adminbar button{flex:1}.hidden{display:none!important}
-</style></head>
-<body><div class="app">
-<header><div class="brand">💡 SV Ideensammler</div><div class="tag">Deine Meinung zählt.</div></header>
-<main>
-<section id="home" class="screen active">
-<div class="hero"><h1>Was möchtest du verbessern?</h1><p>Teile deine Idee mit der SV. Kleine oder große Vorschläge – jede Stimme zählt.</p><button class="primary" onclick="show('new')">Vorschlag einreichen</button></div>
-<h2>Beliebte Vorschläge</h2><div id="homeList" class="spinner">Lade Vorschläge …</div>
-</section>
-<section id="new" class="screen">
-<button class="back" onclick="show('home')">← Zurück</button><h2>Vorschlag einreichen</h2>
-<label>Titel</label><input id="title" maxlength="120" placeholder="z. B. Mehr Sitzmöglichkeiten">
-<label>Beschreibung</label><textarea id="desc" maxlength="1000" placeholder="Beschreibe deinen Vorschlag …"></textarea>
-<label>Kategorie</label><select id="cat"><option>Schulhof</option><option>Unterricht</option><option>Ausstattung</option><option>Veranstaltungen</option><option>Toiletten / Umkleiden</option><option>Sonstiges</option></select>
-<label>Name (optional)</label><input id="author" maxlength="60" placeholder="Anonym">
-<div class="notice">Du kannst deinen Vorschlag anonym einreichen. Bitte keine privaten Daten anderer Personen nennen.</div>
-<button class="primary" onclick="submitIdea()">Vorschlag absenden</button>
-</section>
-<section id="ideas" class="screen">
-<h2>Alle Vorschläge</h2><div class="tabs"><button class="tab active" onclick="setFilter('all',this)">Alle</button><button class="tab" onclick="setFilter('unread',this)">Ungelesen</button><button class="tab" onclick="setFilter('read',this)">Gelesen</button><button class="tab" onclick="setFilter('likes',this)">Meiste Likes</button></div>
-<div id="ideaList" class="spinner">Lade Vorschläge …</div>
-</section>
-<section id="admin" class="screen">
-<h2>SV-Bereich</h2><div id="loginBox"><p class="small">Nur die SV kann Vorschläge als gelesen markieren und verwalten.</p><label>E-Mail</label><input id="email" type="email" placeholder="SV-E-Mail"><label>Passwort</label><input id="password" type="password" placeholder="Passwort"><button class="primary" onclick="login()">Anmelden</button></div>
-<div id="dashboard" class="hidden"><div class="adminbar"><button class="secondary" onclick="setAdminFilter(false)">Ungelesen</button><button class="secondary" onclick="setAdminFilter(true)">Gelesen</button></div><div id="adminList"></div><button class="secondary" onclick="logout()">Abmelden</button></div>
-</section>
-</main>
-<nav><button class="navbtn active" onclick="show('home')">⌂<br>Start</button><button class="navbtn" onclick="show('ideas')">☷<br>Vorschläge</button><button class="navbtn" onclick="show('new')">＋<br>Einreichen</button><button class="navbtn" onclick="show('admin')">♙<br>SV</button></nav>
-</div>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SV Ideensammler</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root { --navy: #1a365d; --line: #e2e8f0; --muted: #64748b; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; background: #f8fafc; color: #0f172a; }
+    .card { background: white; padding: 16px; border-radius: 8px; border: 1px solid var(--line); margin-bottom: 12px; }
+    button { cursor: pointer; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--line); background: #fff; }
+    .primary { background: var(--navy); color: #fff; border: none; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header><h1>💡 SV Ideensammler</h1></header>
+    <main>
+      <section id="home">
+        <h2>Beliebte Vorschläge</h2>
+        <div id="homeList">Lade Vorschläge...</div>
+      </section>
+    </main>
+  </div>
+
 <script>
-  window.onerror = function(msg, url, line) {
-  alert("Fehler: " + msg + " (Zeile " + line + ")");
-};
-  
-const SUPABASE_URL="https://mownirvgaflngfwzythi.supabase.co";
-const SUPABASE_KEY="sb_publishable_AL4EwTHoIXcaI-5-d7C0Vw_hvDcDsbF";
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let filter='all', adminRead=false, currentUser=null;
-const liked=()=>JSON.parse(localStorage.getItem('sv_liked')||'[]');
-const setLiked=x=>localStorage.setItem('sv_liked',JSON.stringify(x));
-async function fetchIdeas(){let q=db.from('ideas').select('*').order('created_at',{ascending:false});const {data,error}=await q;if(error){showError(error.message);return []}return data||[]}
-async function render(){const x=await fetchIdeas();let h=x.slice().sort((a,b)=>b.likes-a.likes).slice(0,3);document.getElementById('homeList').innerHTML=h.map(card).join('')||'<p class="small">Noch keine Vorschläge.</p>';let y=[...x];if(filter==='read')y=y.filter(i=>i.read);if(filter==='unread')y=y.filter(i=>!i.read);if(filter==='likes')y.sort((a,b)=>b.likes-a.likes);document.getElementById('ideaList').innerHTML=y.map(card).join('')||'<p class="small">Keine Vorschläge in dieser Ansicht.</p>'}
-function card(i){const l=liked().includes(i.id);return `<div class="card"><h3>${esc(i.title)}</h3><button onclick="toggleLike('${i.id}')">${l?'❤️':'🤍'} ${i.likes||0}</button></div>`;}
+  const SUPABASE_URL = "https://mownirvgaflngfwzythi.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_AL4EwThoIXcaI-5-d7C0Vw_hvDcDsbF";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  async function toggleLike(id){
-  const l = liked();
-  const isLiked = l.includes(id);
-  const delta = isLiked ? -1 : 1;
+  const liked = () => JSON.parse(localStorage.getItem('sv_liked') || '[]');
+  const setLiked = x => localStorage.setItem('sv_liked', JSON.stringify(x));
 
-  const { error } = await db.rpc('increment_idea_likes', {
-    p_id: id,
-    p_delta: delta
-  });
-
-  if (!error) {
-    const updated = isLiked ? l.filter(x => x !== id) : [...l, id];
-    setLiked(updated);
-    render();
+  async function fetchIdeas() {
+    let { data, error } = await db.from('ideas').select('*').order('likes', { ascending: false });
+    return data || [];
   }
-}
-  
-async function submitIdea(){const t=document.getElementById('title').value.trim(),d=document.getElementById('desc').value.trim();if(!t||!d)return alert('Bitte Titel und Beschreibung ausfüllen.');const {error}=await db.from('ideas').insert({title:t,description:d,category:document.getElementById('cat').value,author:document.getElementById('author').value.trim()||'Anonym'});if(error)return alert('Fehler: '+error.message);document.getElementById('title').value='';document.getElementById('desc').value='';document.getElementById('author').value='';alert('Danke! Dein Vorschlag wurde eingereicht.');show('ideas')}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));render();if(id==='admin')checkUser()}
-function setFilter(f,b){filter=f;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');render()}
-async function login(){const e=document.getElementById('email').value,p=document.getElementById('password').value;const {data,error}=await db.auth.signInWithPassword({email:e,password:p});if(error)return alert('Anmeldung fehlgeschlagen.');currentUser=data.user;document.getElementById('loginBox').classList.add('hidden');document.getElementById('dashboard').classList.remove('hidden');renderAdmin()}
-async function checkUser(){const {data}=await db.auth.getUser();if(data.user){currentUser=data.user;document.getElementById('loginBox').classList.add('hidden');document.getElementById('dashboard').classList.remove('hidden');renderAdmin()}else{document.getElementById('loginBox').classList.remove('hidden');document.getElementById('dashboard').classList.add('hidden')}}
-async function renderAdmin(){if(!currentUser)return;const {data,error}=await db.from('ideas').select('*').eq('read',adminRead).order('likes',{ascending:false});if(error)return;document.getElementById('adminList').innerHTML=(data||[]).map(i=>`<div class="card"><h3>${esc(i.title)}</h3><div class="desc">${esc(i.description)}</div><div class="meta">${esc(i.category)} · ${esc(i.author||'Anonym')} · 👍 ${i.likes}</div><div class="actions"><button class="secondary" onclick="markRead('${i.id}',${!i.read})">${i.read?'Als ungelesen markieren':'Als gelesen markieren'}</button><button class="secondary" onclick="removeIdea('${i.id}')">Löschen</button></div></div>`).join('')||'<p class="small">Keine Vorschläge.</p>'}
-function setAdminFilter(r){adminRead=r;renderAdmin()}
-async function markRead(id,r){const {error}=await db.from('ideas').update({read:r}).eq('id',id);if(error)return alert(error.message);renderAdmin()}
-async function removeIdea(id){if(!confirm('Vorschlag wirklich löschen?'))return;const {error}=await db.from('ideas').delete().eq('id',id);if(error)return alert(error.message);renderAdmin();render()}
-async function logout(){await db.auth.signOut();currentUser=null;checkUser()}
-function showError(m){document.getElementById('homeList').innerHTML='<p class="small">Die Datenbank ist noch nicht eingerichtet. Bitte die SQL-Datei aus diesem Paket in Supabase ausführen.</p>';document.getElementById('ideaList').innerHTML='<p class="small">Die Datenbank ist noch nicht eingerichtet.</p>'}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-render();
-</script></body></html>
+
+  function card(i) {
+    const l = liked().includes(i.id);
+    return `
+      <div class="card">
+        <h3>${i.title || ''}</h3>
+        <p>${i.description || ''}</p>
+        <button onclick="toggleLike(${i.id})">${l ? '❤️' : '🤍'} ${i.likes || 0}</button>
+      </div>
+    `;
+  }
+
+  async function render() {
+    const ideas = await fetchIdeas();
+    const container = document.getElementById('homeList');
+    if (container) {
+      container.innerHTML = ideas.map(card).join('');
+    }
+  }
+
+  async function toggleLike(id) {
+    const l = liked();
+    const isLiked = l.includes(id);
+    const delta = isLiked ? -1 : 1;
+
+    // Supabase RPC Aufruf
+    const { error } = await db.rpc('increment_idea_likes', { p_id: id, p_delta: delta });
+
+    if (error) {
+      alert("Supabase Fehler: " + error.message);
+    } else {
+      const updated = isLiked ? l.filter(x => x !== id) : [...l, id];
+      setLiked(updated);
+      render();
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>
