@@ -65,7 +65,8 @@ async function toggleLike(id){
   });
 
   if (!error) {
-    const updated = isLiked ? l.filter(x => x !== id) : [...l, id];
+    const updated = isLiked ? l.filter(x => x !== id) : [...l, id];const updated = isLiked ? l.filter(x => x !== id) : [...l, id];
+    
     setLiked(updated);
     render();
   }
