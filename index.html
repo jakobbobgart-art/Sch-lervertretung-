@@ -6,34 +6,65 @@
   <title>SV Ideensammler</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root { --navy: #1a365d; --bg: #f8fafc; --card: #ffffff; --line: #e2e8f0; }
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; background: var(--bg); color: #0f172a; }
-    .container { max-width: 500px; margin: 0 auto; }
-    header { text-align: center; margin-bottom: 24px; }
-    h1 { color: var(--navy); margin-bottom: 4px; }
-    .card { background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .card h3 { margin: 0; font-size: 1.05rem; }
-    .like-btn { cursor: pointer; padding: 8px 14px; border-radius: 20px; border: 1px solid var(--line); background: #fff; font-size: 0.9rem; font-weight: bold; transition: all 0.2s; }
+    :root { --navy: #1a365d; --bg: #f8fafc; --card: #ffffff; --line: #e2e8f0; --muted: #64748b; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background: var(--bg); color: #0f172a; }
+    .container { max-width: 600px; margin: 0 auto; }
+    
+    header { text-align: center; margin-bottom: 20px; }
+    header h1 { color: var(--navy); margin: 0 0 4px 0; font-size: 1.6rem; }
+    header p { color: var(--muted); margin: 0; font-size: 0.95rem; }
+
+    .btn-main { width: 100%; padding: 12px; background: var(--navy); color: #fff; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 16px; }
+    
+    .form-card { background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 20px; display: none; }
+    .form-card.active { display: block; }
+    .form-card input, .form-card textarea, .form-card select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; font-family: inherit; }
+    
+    .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+    .chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--line); background: #fff; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+    .chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+    .card { background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .card-body { flex: 1; }
+    .card-tag { display: inline-block; font-size: 0.75rem; background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 4px; margin-bottom: 6px; }
+    .card h3 { margin: 0 0 4px 0; font-size: 1.05rem; }
+    .card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    
+    .like-btn { cursor: pointer; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--line); background: #fff; font-size: 0.9rem; font-weight: bold; min-width: 60px; text-align: center; }
     .like-btn.liked { background: #ffe4e6; border-color: #fda4af; color: #e11d48; }
-    .form-box { background: #fff; padding: 16px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 24px; }
-    input { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
-    .submit-btn { width: 100%; padding: 10px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
+
   <div class="container">
     <header>
       <h1>💡 SV Ideensammler</h1>
-      <p style="color: #64748b; margin: 0;">Neue Vorschläge einreichen & abstimmen</p>
+      <p>Deine Stimme für unsere Schule</p>
     </header>
 
-    <div class="form-box">
-      <input type="text" id="ideaTitle" placeholder="Deine Idee für die Schule..." />
-      <button class="submit-btn" onclick="addIdea()">Vorschlag absenden</button>
+    <button class="btn-main" onclick="toggleForm()">+ Neue Idee einreichen</button>
+
+    <div id="ideaForm" class="form-card">
+      <input type="text" id="title" placeholder="Titel deiner Idee..." required />
+      <textarea id="desc" rows="3" placeholder="Beschreibe deinen Vorschlag genauer..."></textarea>
+      <select id="category">
+        <option value="Allgemein">Allgemein</option>
+        <option value="Schulhof">Schulhof & Pause</option>
+        <option value="Unterricht">Unterricht & Digitales</option>
+        <option value="Ausstattung">Ausstattung & Gebäude</option>
+      </select>
+      <button class="btn-main" style="margin: 0;" onclick="submitIdea()">Absenden</button>
     </div>
 
-    <h2>Ideen</h2>
-    <div id="ideasList">Lade Ideen...</div>
+    <div class="filters">
+      <button class="chip active" onclick="setFilter('all', this)">Alle</button>
+      <button class="chip" onclick="setFilter('Schulhof', this)">Schulhof</button>
+      <button class="chip" onclick="setFilter('Unterricht', this)">Unterricht</button>
+      <button class="chip" onclick="setFilter('Ausstattung', this)">Ausstattung</button>
+    </div>
+
+    <div id="ideasContainer">Lade Ideen...</div>
   </div>
 
 <script>
@@ -41,21 +72,41 @@
   const SUPABASE_KEY = "sb_publishable_AL4EwThoIXcaI-5-d7C0Vw_hvDcDsbF";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  let currentFilter = 'all';
+
   const getLiked = () => JSON.parse(localStorage.getItem('liked_ideas') || '[]');
   const setLiked = (list) => localStorage.setItem('liked_ideas', JSON.stringify(list));
 
+  function toggleForm() {
+    document.getElementById('ideaForm').classList.toggle('active');
+  }
+
   async function loadIdeas() {
-    const { data, error } = await db.from('ideas').select('*').order('likes', { ascending: false });
-    if (error) return console.error(error);
-    
-    const container = document.getElementById('ideasList');
+    let query = db.from('ideas').select('*').order('likes', { ascending: false });
+    if (currentFilter !== 'all') {
+      query = query.eq('category', currentFilter);
+    }
+
+    const { data, error } = await query;
+    if (error) return alert("Fehler beim Laden: " + error.message);
+
+    const container = document.getElementById('ideasContainer');
     const liked = getLiked();
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<p style="text-align:center; color: var(--muted);">Noch keine Ideen vorhanden.</p>';
+      return;
+    }
 
     container.innerHTML = data.map(item => {
       const isLiked = liked.includes(item.id);
       return `
         <div class="card">
-          <h3>${item.title || 'Unbenannte Idee'}</h3>
+          <div class="card-body">
+            <span class="card-tag">${item.category || 'Allgemein'}</span>
+            <h3>${item.title}</h3>
+            ${item.description ? `<p>${item.description}</p>` : ''}
+          </div>
           <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${item.id})">
             ${isLiked ? '❤️' : '🤍'} ${item.likes || 0}
           </button>
@@ -64,15 +115,21 @@
     }).join('');
   }
 
-  async function addIdea() {
-    const input = document.getElementById('ideaTitle');
-    if (!input.value.trim()) return;
+  async function submitIdea() {
+    const title = document.getElementById('title').value.trim();
+    const description = document.getElementById('desc').value.trim();
+    const category = document.getElementById('category').value;
 
-    const { error } = await db.from('ideas').insert([{ title: input.value.trim(), likes: 0 }]);
+    if (!title) return alert("Bitte gib einen Titel ein!");
+
+    const { error } = await db.from('ideas').insert([{ title, description, category, likes: 0 }]);
+    
     if (error) {
       alert("Fehler beim Erstellen: " + error.message);
     } else {
-      input.value = '';
+      document.getElementById('title').value = '';
+      document.getElementById('desc').value = '';
+      toggleForm();
       loadIdeas();
     }
   }
@@ -82,7 +139,6 @@
     const isLiked = liked.includes(id);
     const delta = isLiked ? -1 : 1;
 
-    // Aufrufen der Supabase SQL-Funktion
     const { error } = await db.rpc('increment_idea_likes', { p_id: id, p_delta: delta });
 
     if (error) {
@@ -94,8 +150,16 @@
     }
   }
 
+  function setFilter(cat, btn) {
+    currentFilter = cat;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    loadIdeas();
+  }
+
   loadIdeas();
 </script>
 </body>
 </html>
+
 
